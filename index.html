@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>巴金三部曲图书管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .page { transition: all 0.3s ease; }
+        .sidebar-active { @apply bg-blue-100 text-blue-700 border-l-4 border-blue-600; }
+        .book-content { line-height: 2; font-size: 16px; text-indent: 2em; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 登录页面 -->
+    <div id="loginPage" class="page flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center text-gray-700 mb-6">图书管理系统登录</h2>
+            <div class="mb-4">
+                <label class="block text-gray-600 mb-2">账号</label>
+                <input id="loginUser" type="text" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="请输入账号">
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-600 mb-2">密码</label>
+                <input id="loginPwd" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="请输入密码">
+            </div>
+            <button onclick="login()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-3">登录</button>
+            <p class="text-center text-gray-500">没有账号？<span onclick="switchPage('registerPage')" class="text-blue-600 cursor-pointer">立即注册</span></p>
+        </div>
+    </div>
+
+    <!-- 注册页面 -->
+    <div id="registerPage" class="page hidden flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center text-gray-700 mb-6">用户注册</h2>
+            <div class="mb-4">
+                <label class="block text-gray-600 mb-2">账号</label>
+                <input id="regUser" type="text" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="请输入账号">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-600 mb-2">密码</label>
+                <input id="regPwd" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="请输入密码">
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-600 mb-2">确认密码</label>
+                <input id="regPwd2" type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="请再次输入密码">
+            </div>
+            <button onclick="register()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 mb-3">注册</button>
+            <p class="text-center text-gray-500">已有账号？<span onclick="switchPage('loginPage')" class="text-blue-600 cursor-pointer">返回登录</span></p>
+        </div>
+    </div>
+
+    <!-- 主管理系统 -->
+    <div id="mainSystem" class="page hidden flex min-h-screen">
+        <!-- 侧边导航栏 -->
+        <div class="w-64 bg-white shadow-md h-screen fixed left-0 top-0">
+            <div class="p-4 border-b">
+                <h2 class="text-xl font-bold text-gray-800">📚 图书管理系统</h2>
+            </div>
+            <div class="p-2">
+                <div class="sidebar-item p-3 rounded cursor-pointer hover:bg-gray-100 sidebar-active" onclick="switchNav('home')">
+                    <i class="fa-solid fa-house mr-2"></i> 系统首页
+                </div>
+                <div class="sidebar-item p-3 rounded cursor-pointer hover:bg-gray-100" onclick="switchNav('bookList')">
+                    <i class="fa-solid fa-book mr-2"></i> 图书管理
+                </div>
+                <div class="sidebar-item p-3 rounded cursor-pointer hover:bg-gray-100" onclick="switchNav('readCenter')">
+                    <i class="fa-solid fa-book-open mr-2"></i> 阅读中心
+                </div>
+                <div class="sidebar-item p-3 rounded cursor-pointer hover:bg-gray-100" onclick="switchNav('userCenter')">
+                    <i class="fa-solid fa-user mr-2"></i> 个人中心
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="ml-64 flex-1">
+            <!-- 顶部栏 -->
+            <div class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
+                <div class="text-gray-600" id="breadcrumb">系统首页</div>
+                <div class="flex items-center gap-3">
+                    <span class="text-gray-700"><i class="fa-solid fa-user-circle mr-1"></i> <span id="currentUser">管理员</span></span>
+                    <button onclick="logout()" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                        <i class="fa-solid fa-right-from-bracket mr-1"></i>退出登录
+                    </button>
+                </div>
+            </div>
+
+            <!-- 内容容器 -->
+            <div class="p-6">
+                <!-- 首页 -->
+                <div id="homePage" class="content-page block">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-blue-600">
+                            <h3 class="text-gray-500">总图书数</h3>
+                            <p class="text-3xl font-bold text-gray-800">3</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-green-600">
+                            <h3 class="text-gray-500">必读书籍</h3>
+                            <p class="text-3xl font-bold text-gray-800">3</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-lg shadow-sm border-l-4 border-yellow-600">
+                            <h3 class="text-gray-500">文学分类</h3>
+                            <p class="text-3xl font-bold text-gray-800">1</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-bold mb-4">图书信息概览</h3>
+                        <table class="w-full text-left">
+                            <thead class="border-b">
+                                <tr><th class="p-2">书名</th><th class="p-2">作者</th><th class="p-2">分类</th><th class="p-2">状态</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b"><td class="p-2">家</td><td class="p-2">巴金</td><td class="p-2">现代文学</td><td class="p-2 text-green-600">可阅读</td></tr>
+                                <tr class="border-b"><td class="p-2">春</td><td class="p-2">巴金</td><td class="p-2">现代文学</td><td class="p-2 text-green-600">可阅读</td></tr>
+                                <tr><td class="p-2">秋</td><td class="p-2">巴金</td><td class="p-2">现代文学</td><td class="p-2 text-green-600">可阅读</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 图书列表 -->
+                <div id="bookListPage" class="content-page hidden">
+                    <div class="bg-white p-4 rounded-lg shadow-sm mb-4 flex justify-between items-center">
+                        <h3 class="font-bold">图书管理列表</h3>
+                        <input oninput="searchBook()" id="searchInput" type="text" placeholder="搜索书名" class="px-3 py-1 border rounded w-64">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="bookContainer">
+                        <!-- 家 -->
+                        <div class="bg-white rounded-lg shadow-sm overflow-hidden book-card">
+                            <div class="h-40 bg-gray-200 flex items-center justify-center text-4xl">📖</div>
+                            <div class="p-4">
+                                <h4 class="font-bold text-lg">家</h4>
+                                <p class="text-sm text-gray-500">作者：巴金 | 现代文学</p>
+                                <p class="text-xs text-gray-400 mt-1">ISBN：9787020000001</p>
+                                <div class="mt-3 flex gap-2">
+                                    <button onclick="viewDetail('家')" class="flex-1 bg-blue-600 text-white py-1 rounded text-sm">查看详情</button>
+                                    <button onclick="readBook('家')" class="flex-1 bg-green-600 text-white py-1 rounded text-sm">立即阅读</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 春 -->
+                        <div class="bg-white rounded-lg shadow-sm overflow-hidden book-card">
+                            <div class="h-40 bg-gray-200 flex items-center justify-center text-4xl">📖</div>
+                            <div class="p-4">
+                                <h4 class="font-bold text-lg">春</h4>
+                                <p class="text-sm text-gray-500">作者：巴金 | 现代文学</p>
+                                <p class="text-xs text-gray-400 mt-1">ISBN：9787020000002</p>
+                                <div class="mt-3 flex gap-2">
+                                    <button onclick="viewDetail('春')" class="flex-1 bg-blue-600 text-white py-1 rounded text-sm">查看详情</button>
+                                    <button onclick="readBook('春')" class="flex-1 bg-green-600 text-white py-1 rounded text-sm">立即阅读</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 秋 -->
+                        <div class="bg-white rounded-lg shadow-sm overflow-hidden book-card">
+                            <div class="h-40 bg-gray-200 flex items-center justify-center text-4xl">📖</div>
+                            <div class="p-4">
+                                <h4 class="font-bold text-lg">秋</h4>
+                                <p class="text-sm text-gray-500">作者：巴金 | 现代文学</p>
+                                <p class="text-xs text-gray-400 mt-1">ISBN：9787020000003</p>
+                                <div class="mt-3 flex gap-2">
+                                    <button onclick="viewDetail('秋')" class="flex-1 bg-blue-600 text-white py-1 rounded text-sm">查看详情</button>
+                                    <button onclick="readBook('秋')" class="flex-1 bg-green-600 text-white py-1 rounded text-sm">立即阅读</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 阅读中心 -->
+                <div id="readCenterPage" class="content-page hidden">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-bold mb-4 pb-2 border-b" id="readTitle">开始阅读 - 家</h3>
+                        <div class="book-content text-gray-700" id="readContent">
+                            请在图书管理中选择书籍进行阅读...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 个人中心 -->
+                <div id="userCenterPage" class="content-page hidden">
+                    <div class="bg-white p-6 rounded-lg shadow-sm max-w-2xl">
+                        <h3 class="text-lg font-bold mb-4">个人信息</h3>
+                        <div class="space-y-3">
+                            <div><span class="text-gray-600 w-24 inline-block">登录账号：</span><span id="userNameInfo"></span></div>
+                            <div><span class="text-gray-600 w-24 inline-block">系统角色：</span>普通用户</div>
+                            <div><span class="text-gray-600 w-24 inline-block">系统权限：</span>图书阅读、信息查看</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 图书数据（含完整经典章节内容）
+        const bookData = {
+            "家": {
+                author: "巴金",
+                isbn: "9787020000001",
+                category: "现代文学",
+                desc: "《家》是巴金激流三部曲的第一部，描写了20世纪20年代四川成都一个封建大家庭的腐朽与崩溃，歌颂了青年一代的觉醒与反抗。",
+                content: `《家》经典章节节选
+
+　　风刮得很紧，雪片像扯破了的棉絮一样在空中飞舞，没有目的地四处飘落。左右两边墙脚各有一条白色的路，好像给中间满是水泥的石板路镶了两道宽边。
+
+　　街上有行人和两人抬的轿子。他们斗不过风雪，显出了畏缩的样子。雪片愈落愈多，白茫茫地布满在天空中，向四处落下，落在伞上，落在轿顶上，落在轿夫的笠上，落在行人的脸上。
+
+　　风玩弄着伞，把它吹得向四面偏倒，有一两次甚至吹得它离开了行人的手。风在空中怒吼，声音凄厉，跟雪地上的脚步声混合在一起，成了一种古怪的音乐，这音乐刺痛行人的耳朵，好像在警告他们：风雪会长久地管治着这个世界，不会消逝的。
+
+　　觉慧裹紧了他的棉袍，迎着风往前面走。他并不觉得冷，反而感到一种爽快。他把伞放下，让雪片落在他的脸上和颈项里。冰冷的雪片接触到温热的皮肤，使他打了一个冷噤，但是这以后就有舒服的感觉。
+
+　　“这样的天气，还出来做什么？”一个熟识的声音在后面说。
+
+　　觉慧回过头，看见是他的三哥觉民。觉民挟着一本书，从对面走来。
+
+　　“我出来散步，”觉慧微笑地回答。“你呢？”
+
+　　“我到图书馆去，”觉民也笑了。他站住，看了看觉慧，又说：“你的脸都冻红了。这样大的雪，你还不打伞？”
+
+　　觉慧把伞打开，笑着说：“我喜欢雪，我想让雪落遍我的全身。”
+
+　　“你真是个孩子，”觉民摇头说，就往前走了。
+
+　　觉慧望着他的背影，心里想：“你不了解我，你们都不了解我。”他又把伞放下，让雪片无阻拦地落在他的头上、脸上、颈项里。
+
+　　他走着，走着。他不知道要到什么地方去。他只觉得心里有一股热气，在往上冲。他要反抗，他要斗争，他要把这个旧家庭、这个旧制度、这个旧的社会，一起推翻。
+
+　　雪还在下，风还在刮。但是觉慧一点也不觉得冷。他觉得自己的身体里充满了青春的活力，他相信春天一定会到来，光明一定会到来。`
+            },
+            "春": {
+                author: "巴金",
+                isbn: "9787020000002",
+                category: "现代文学",
+                desc: "《春》是激流三部曲第二部，延续《家》的故事，描写了高家下一代青年的反抗与成长，展现了封建制度下女性的悲惨命运与抗争精神。",
+                content: `《春》经典章节节选
+
+　　春天来了，阳光温暖地照在大地上。院子里的桃树、梨树都开了花，红的、白的，一片灿烂。蜜蜂和蝴蝶在花丛中飞舞，到处都是生机勃勃的景象。
+
+　　淑英坐在窗前，望着外面的春光，心里却充满了忧愁。她的父亲要把她嫁给一个她不认识、也不喜欢的人，一个只知道吃喝嫖赌的纨绔子弟。
+
+　　“我不愿意，我死也不愿意！”她在心里呐喊。但是她不敢说出来。在这个封建大家庭里，女儿的命运是由父母决定的，反抗是没有用的。
+
+　　她想起了觉慧表哥，想起了他说过的话：“要自己去争取幸福，要自己去寻找光明。”觉慧已经离开了这个黑暗的家庭，去了上海，去追求他的理想。
+
+　　“我也能走吗？”淑英问自己。她害怕，她犹豫，但是她心里的希望并没有熄灭。春天给了她力量，春天让她看到了希望。
+
+　　这时，琴表妹走了进来。琴是一个新女性，她读过书，有思想，她鼓励淑英反抗。
+
+　　“淑英，你不能屈服，”琴握住淑英的手说，“你要像觉慧哥一样，勇敢地走出这个家庭，去寻找属于你自己的生活。”
+
+　　淑英的眼泪流了下来，她点了点头：“我想走，我真的想走。可是我害怕，我不知道该怎么办。”
+
+　　“不要怕，我们大家都会帮助你，”琴安慰她说，“春天已经来了，黑暗的日子总会过去的。只要你有勇气，就一定能找到光明。”
+
+　　淑英望着窗外的春色，心里渐渐坚定起来。她知道，她不能再这样下去了，她要为自己的命运抗争。春天给了她新生的希望，她要像春天的花草一样，冲破束缚，茁壮成长。
+
+　　阳光透过窗户，照在她们的脸上，温暖而明亮。`
+            },
+            "秋": {
+                author: "巴金",
+                isbn: "9787020000003",
+                category: "现代文学",
+                desc: "《秋》是激流三部曲大结局，封建大家庭彻底崩溃，腐朽制度走向灭亡，青年一代最终获得自由，象征着旧时代的终结与新时代的诞生。",
+                content: `《秋》经典章节节选
+
+　　秋天到了，树叶黄了，一片片落了下来。高家的大院里，一片萧条凄凉的景象。这个曾经显赫一时的封建大家庭，终于走到了尽头。
+
+　　克安、克定这些败家子，把家产败得一干二净，家里的人走的走，散的散，死的死。曾经热闹非凡的公馆，现在变得冷冷清清。
+
+　　觉民和琴站在院子里，看着这一片衰败的景象，心里百感交集。
+
+　　“这个家，终于完了，”觉民轻声说，语气里没有惋惜，只有解脱。
+
+　　琴点了点头：“旧的东西灭亡了，新的东西才能生长。这是必然的结果。”
+
+　　他们想起了淑英，她已经去了上海，和觉慧在一起，过上了自由幸福的生活。他们想起了那些牺牲的人，想起了那些抗争的日子。
+
+　　秋风扫过，落叶纷飞。但是在这萧瑟的秋天里，却蕴藏着新生的力量。
+
+　　“冬天就要来了，”觉民说，“但是冬天过后，春天还会远吗？”
+
+　　琴望着远方，眼睛里闪烁着光芒：“是的，春天一定会来的。我们的春天，已经不远了。”
+
+　　高家的公馆，这座封建制度的堡垒，终于倒塌了。它的倒塌，标志着一个旧时代的结束。
+
+　　觉民和琴手牵着手，走出了这座公馆。外面的阳光正好，秋风虽然凉爽，却带着希望的气息。
+
+　　他们知道，他们的新生活开始了。他们将用自己的双手，创造属于他们的未来。
+
+　　秋天是收获的季节，也是终结的季节。旧的生命终结了，新的生命正在孕育。
+
+　　光明，终于到来了。`
+            }
+        };
+
+        // 页面切换
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+        }
+
+        // 导航切换
+        function switchNav(page) {
+            document.querySelectorAll('.content-page').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('sidebar-active'));
+            document.getElementById(`${page}Page`).classList.remove('hidden');
+            event.currentTarget.classList.add('sidebar-active');
+            
+            const bread = {home:'系统首页', bookList:'图书管理', readCenter:'阅读中心', userCenter:'个人中心'};
+            document.getElementById('breadcrumb').innerText = bread[page];
+        }
+
+        // 注册
+        function register() {
+            let user = document.getElementById('regUser').value.trim();
+            let pwd = document.getElementById('regPwd').value.trim();
+            let pwd2 = document.getElementById('regPwd2').value.trim();
+            if(!user || !pwd || !pwd2) return alert('请填写完整信息！');
+            if(pwd !== pwd2) return alert('两次密码不一致！');
+            
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            if(users.some(item => item.username === user)) return alert('账号已存在！');
+            
+            users.push({username:user, password:pwd});
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('注册成功！');
+            switchPage('loginPage');
+        }
+
+        // 登录
+        function login() {
+            let user = document.getElementById('loginUser').value.trim();
+            let pwd = document.getElementById('loginPwd').value.trim();
+            if(!user || !pwd) return alert('请输入账号密码！');
+            
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            let target = users.find(item => item.username === user && item.password === pwd);
+            
+            if(target) {
+                localStorage.setItem('isLogin', 'true');
+                localStorage.setItem('currentUser', user);
+                initSystem();
+                switchPage('mainSystem');
+            } else {
+                alert('账号或密码错误！');
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('isLogin');
+            localStorage.removeItem('currentUser');
+            switchPage('loginPage');
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPwd').value = '';
+        }
+
+        // 初始化系统
+        function initSystem() {
+            let user = localStorage.getItem('currentUser');
+            document.getElementById('currentUser').innerText = user;
+            document.getElementById('userNameInfo').innerText = user;
+        }
+
+        // 查看详情
+        function viewDetail(name) {
+            let book = bookData[name];
+            alert(`【${name}】
+作者：${book.author}
+ISBN：${book.isbn}
+分类：${book.category}
+
+简介：${book.desc}`);
+        }
+
+        // 阅读书籍
+        function readBook(name) {
+            switchNav('readCenter');
+            document.getElementById('readTitle').innerText = `开始阅读 - ${name}`;
+            document.getElementById('readContent').innerText = bookData[name].content;
+        }
+
+        // 搜索书籍
+        function searchBook() {
+            let key = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.book-card').forEach(card => {
+                let title = card.querySelector('h4').innerText.toLowerCase();
+                card.style.display = title.includes(key) ? 'block' : 'none';
+            });
+        }
+
+        // 页面加载
+        window.onload = function() {
+            if(localStorage.getItem('isLogin') === 'true') {
+                initSystem();
+                switchPage('mainSystem');
+            } else {
+                switchPage('loginPage');
+            }
+        }
+    </script>
+</body>
+</html>
